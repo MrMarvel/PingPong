@@ -16,6 +16,7 @@ import java.net.DatagramSocket;
 //
 //
 @SuppressWarnings("deprecation")
+@Deprecated
 public class AsyncNetworkSend extends AsyncTask<Object, Void, Void> {
 
     @Override

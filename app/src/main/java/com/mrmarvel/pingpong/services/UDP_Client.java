@@ -1,9 +1,10 @@
 package com.mrmarvel.pingpong.services;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Map;
 
@@ -26,7 +28,7 @@ public class UDP_Client {
     boolean isConnectionEstablished = false;
     private DatagramSocket workingSocket = null;
     public SensorData sd = new SensorData();
-    AsyncNetworkSend sender = new AsyncNetworkSend();
+    //AsyncNetworkSend sender = new AsyncNetworkSend();
     private String ip = null;
     private int port = 0;
 
@@ -56,15 +58,15 @@ public class UDP_Client {
     public void sendData(@NonNull SensorData data) {
         if (!isConnectionEstablished) return;
         if (workingSocket == null) return;
-        sender.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, workingSocket);
-        //networkSend(workingSocket, data);
+        //sender.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, workingSocket);
+        networkSend(workingSocket, data);
     }
 
     Map<String, Object> establishConnection(String ip, int port) {
-        AsyncNetworkEstablish async_client = new AsyncNetworkEstablish(this, ip, port);
-        async_client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        return null;
-        /*DatagramSocket socket = null;
+        //AsyncNetworkEstablish async_client = new AsyncNetworkEstablish(this, ip, port);
+        //async_client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        //return null;
+        DatagramSocket socket = null;
         Map<String, Object> result = Maps.newHashMap(ImmutableMap.of("result", 0));
 
         InetAddress address = null;
@@ -96,7 +98,7 @@ public class UDP_Client {
             socket.close();
             socket = null;
         }
-        return result;*/
+        return result;
     }
 
     public void sendAndReturn(@NonNull String ip, int port) {

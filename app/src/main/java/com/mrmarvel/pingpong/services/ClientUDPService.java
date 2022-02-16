@@ -84,7 +84,8 @@ public class ClientUDPService extends IntentService {
         switch (action) {
             case CONNECT:
                 if (!client.isConnectionEstablished()) {
-                    client.establishConnection(ip, port);
+                    //client.establishConnection(ip, port);
+                    establishConnection(ip, port);
                 }
                 break;
         }
@@ -104,7 +105,26 @@ public class ClientUDPService extends IntentService {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("MINE "+this.getClass().getSimpleName(), Objects.requireNonNull(new Object() {
         }.getClass().getEnclosingMethod()).getName()+"");
-        return super.onStartCommand(intent, flags, startId);
+        String ip = null;
+        if (intent == null) return START_STICKY;
+        ip = intent.getStringExtra("ip");
+        if (ip == null) ip = "voidproject.play.ai";
+        int port = intent.getIntExtra("port", 25565);
+        ACTION action;
+        try {
+            action = ACTION.valueOf(Objects.requireNonNull(intent.getAction()).toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return START_STICKY;
+        }
+        switch (action) {
+            case CONNECT:
+                if (!client.isConnectionEstablished()) {
+                    //client.establishConnection(ip, port);
+                    establishConnection(ip, port);
+                }
+                break;
+        }
+        return START_NOT_STICKY;
     }
 
     @Override

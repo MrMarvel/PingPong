@@ -19,6 +19,7 @@ import java.net.UnknownHostException;
 import java.util.Map;
 
 @SuppressWarnings("deprecation")
+@Deprecated
 public class AsyncNetworkEstablish extends AsyncTask<Void, Void, Map<String, Object>> {
 
     private final UDP_Client client;
