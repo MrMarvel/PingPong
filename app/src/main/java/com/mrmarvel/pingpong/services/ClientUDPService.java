@@ -7,15 +7,13 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.gson.annotations.Expose;
+import com.mrmarvel.pingpong.SensorData;
+import com.mrmarvel.pingpong.UDP_Client;
 
-import java.io.Serializable;
 import java.util.Objects;
-
-import lombok.Data;
-import lombok.NonNull;
 
 // P.S. П**ДЕЦ ЛАПША ВКУСНАЯ
 public class ClientUDPService extends IntentService {
@@ -30,6 +28,7 @@ public class ClientUDPService extends IntentService {
         super("ClientUDPService");
     }
 
+
     public enum ACTION {
         CONNECT
     }
@@ -42,7 +41,7 @@ public class ClientUDPService extends IntentService {
     }
 
     public class MyBinder extends Binder {
-        ClientUDPService getService() {
+        public ClientUDPService getService() {
             return ClientUDPService.this;
         }
     }
@@ -85,7 +84,7 @@ public class ClientUDPService extends IntentService {
             case CONNECT:
                 if (!client.isConnectionEstablished()) {
                     //client.establishConnection(ip, port);
-                    establishConnection(ip, port);
+                    client.sendAndReturn(ip, port);
                 }
                 break;
         }
@@ -94,6 +93,9 @@ public class ClientUDPService extends IntentService {
 
     public void sendData(@NonNull String ip, int port, @NonNull SensorData data) {
         client.sendData(ip, port, data);
+    }
+    public void sendData(@NonNull SensorData data) {
+        client.sendData(data);
     }
 
     public void establishConnection(@NonNull String ip, int port) {
@@ -105,26 +107,8 @@ public class ClientUDPService extends IntentService {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("MINE "+this.getClass().getSimpleName(), Objects.requireNonNull(new Object() {
         }.getClass().getEnclosingMethod()).getName()+"");
-        String ip = null;
-        if (intent == null) return START_STICKY;
-        ip = intent.getStringExtra("ip");
-        if (ip == null) ip = "voidproject.play.ai";
-        int port = intent.getIntExtra("port", 25565);
-        ACTION action;
-        try {
-            action = ACTION.valueOf(Objects.requireNonNull(intent.getAction()).toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return START_STICKY;
-        }
-        switch (action) {
-            case CONNECT:
-                if (!client.isConnectionEstablished()) {
-                    //client.establishConnection(ip, port);
-                    establishConnection(ip, port);
-                }
-                break;
-        }
-        return START_NOT_STICKY;
+
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
@@ -137,15 +121,3 @@ public class ClientUDPService extends IntentService {
     }
 }
 
-@Data class SensorData implements Serializable {
-    public @Expose float gyro_azimuth;
-    public @Expose float gyro_pitch;
-    public @Expose float gyro_roll;
-    public @Expose float gyro_freq;
-
-    public @Expose float accel_x;
-    public @Expose float accel_y;
-    public @Expose float accel_z;
-    public @Expose float accel_freq;
-
-}

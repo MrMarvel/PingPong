@@ -1,4 +1,4 @@
-package com.mrmarvel.pingpong.services;
+package com.mrmarvel.pingpong;
 
 import android.os.AsyncTask;
 import android.util.Log;

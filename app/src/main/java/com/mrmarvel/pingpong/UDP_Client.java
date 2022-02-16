@@ -1,4 +1,4 @@
-package com.mrmarvel.pingpong.services;
+package com.mrmarvel.pingpong;
 
 import android.content.Intent;
 import android.util.Log;
@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mrmarvel.pingpong.services.ClientUDPService;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -17,9 +18,11 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Map;
+import java.util.Objects;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 
 public class UDP_Client {
     private final ClientUDPService service;
@@ -41,7 +44,7 @@ public class UDP_Client {
         if (this.ip == null) return true;
         if (this.port != port) return true;
         try {
-            if (!this.ip.equals(InetAddress.getByName(ip).getHostAddress())) return true;
+            if (!Objects.equals(InetAddress.getByName(this.ip).getHostAddress(), InetAddress.getByName(ip).getHostAddress())) return true;
         } catch (UnknownHostException e) {
             return true;
         }
@@ -55,14 +58,18 @@ public class UDP_Client {
         sendData(data);
     }
 
+    @SneakyThrows
     public void sendData(@NonNull SensorData data) {
-        if (!isConnectionEstablished) return;
+        if (!isConnectionEstablished) {
+            establishConnection(ip, port);
+            if (!isConnectionEstablished) throw new Exception("Network connection is down!");
+        };
         if (workingSocket == null) return;
         //sender.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, workingSocket);
         networkSend(workingSocket, data);
     }
 
-    Map<String, Object> establishConnection(String ip, int port) {
+    public Map<String, Object> establishConnection(String ip, int port) {
         //AsyncNetworkEstablish async_client = new AsyncNetworkEstablish(this, ip, port);
         //async_client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         //return null;
@@ -97,6 +104,12 @@ public class UDP_Client {
             result.put("result", -2);
             socket.close();
             socket = null;
+        }
+        if (socket != null) {
+            isConnectionEstablished = true;
+            this.ip = ip;
+            this.port = port;
+            workingSocket = socket;
         }
         return result;
     }

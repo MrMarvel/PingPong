@@ -13,8 +13,11 @@ import com.kircherelectronics.fsensor.observer.SensorSubject;
 import com.kircherelectronics.fsensor.sensor.FSensor;
 import com.kircherelectronics.fsensor.sensor.acceleration.LinearAccelerationSensor;
 import com.kircherelectronics.fsensor.sensor.gyroscope.ComplementaryGyroscopeSensor;
+import com.mrmarvel.pingpong.SensorData;
 
+import java.util.Date;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class InfiniteSensorService extends Service {
 
@@ -26,8 +29,8 @@ public class InfiniteSensorService extends Service {
     private FSensor sensorGyro;
 
     private volatile ClientUDPService clientUDPService = null;
-    private volatile boolean isSensorGyroRefreshed = false;
-    private volatile boolean isSensorAccelRefreshed = false;
+    private volatile AtomicInteger sensorGyroRefreshed = new AtomicInteger(0);
+    private volatile AtomicInteger sensorAccelRefreshed = new AtomicInteger(0);
 
 
 
@@ -46,20 +49,26 @@ public class InfiniteSensorService extends Service {
     };
 
     private final SensorSubject.SensorObserver sensorAccelerationObserver = values -> {
-        data.gyro_azimuth = values[0];
-        data.gyro_pitch = values[1];
-        data.gyro_roll = values[2];
-        data.gyro_freq = values[3 ];
-        isSensorAccelRefreshed = true;
+        for (int i = 0; i < values.length; i++) {
+            if (Float.isNaN(values[i])) values[i] = 0;
+        }
+        data.accel_x += values[0];
+        data.accel_y += values[1];
+        data.accel_z += values[2];
+        data.accel_freq += values[3];
+        sensorAccelRefreshed.incrementAndGet();
         checkReadyToSend();
     };
 
     private final SensorSubject.SensorObserver sensorGyroObserver = values -> {
-        data.accel_x = values[0];
-        data.accel_y = values[1];
-        data.accel_z = values[2];
-        data.accel_freq = values[3];
-        isSensorGyroRefreshed = true;
+        for (int i = 0; i < values.length; i++) {
+            if (Float.isNaN(values[i])) values[i] = 0;
+        }
+        data.gyro_azimuth = (float) Math.toDegrees(values[0]);
+        data.gyro_pitch = (float) Math.toDegrees(values[1]);
+        data.gyro_roll = (float) Math.toDegrees(values[2]);
+        data.gyro_freq = values[3];
+        sensorGyroRefreshed.incrementAndGet();
         checkReadyToSend();
     };
 
@@ -71,7 +80,7 @@ public class InfiniteSensorService extends Service {
 
         Intent i = new Intent(this, ClientUDPService.class);
         i.putExtra("ip", ip).putExtra("port", port);
-        bindService(i, clientUDPServiceConnection, BIND_AUTO_CREATE);
+        bindService(i, clientUDPServiceConnection, BIND_AUTO_CREATE | BIND_IMPORTANT);
 
         LinearAccelerationSensor linSensor = new LinearAccelerationSensor(this);
         linSensor.setSensorDelay(SensorManager.SENSOR_DELAY_GAME);
@@ -97,11 +106,31 @@ public class InfiniteSensorService extends Service {
         unbindService(clientUDPServiceConnection);
     }
 
+    long lastTimestamp = 0;
+
     private void checkReadyToSend() {
-        if (!isSensorGyroRefreshed) return;
-        if (!isSensorAccelRefreshed) return;
+        int gc = sensorGyroRefreshed.get();
+        int ac = sensorAccelRefreshed.get();
+        if (gc < 1) return;
+        if (ac < 1) return;
+        long timestamp = new Date().getTime();
+        if (timestamp - lastTimestamp < 20) return;
+        data.divGyro(gc);
+        data.divAccel(ac);
+        lastTimestamp = timestamp;
+        data.timestamp = timestamp;
 
         sendData();
+        sensorGyroRefreshed.addAndGet(-gc);
+        sensorAccelRefreshed.addAndGet(-ac);
+    }
+
+    private final class ThreadSend extends Thread {
+        @Override
+        public void run() {
+            clientUDPService.sendData(ip, port, data);
+            super.run();
+        }
     }
 
     private void sendData() {
@@ -109,7 +138,7 @@ public class InfiniteSensorService extends Service {
         //i.setAction(ClientUDPService.ACTION_SEND);
         //i.putExtra("data", (Serializable) data);
         if (clientUDPService == null) return;
-        clientUDPService.sendData(ip, port, data);
+        new ThreadSend().start();
     }
 
 

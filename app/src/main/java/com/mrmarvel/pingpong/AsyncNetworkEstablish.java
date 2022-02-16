@@ -1,4 +1,4 @@
-package com.mrmarvel.pingpong.services;
+package com.mrmarvel.pingpong;
 
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mrmarvel.pingpong.services.ClientUDPService;
 
 import org.apache.commons.lang3.StringUtils;
 
