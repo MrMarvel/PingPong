@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ip_address_hint">IP адрес хоста</string>
+    <string name="port_hint">PORT хоста</string>
+    <string name="connect">НАЧАТЬ</string>
+</resources>

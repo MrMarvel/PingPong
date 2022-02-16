@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">PingPong</string>
+    <string name="tab_text_1">Tab 1</string>
+    <string name="tab_text_2">Tab 2</string>
+    <string name="a_button_to_add_server">add server</string>
+    <string name="rocket_image">rocket image</string>
+    <string name="ip_default">voidproject.play.ai</string>
+    <string name="port_default">25565</string>
+</resources>

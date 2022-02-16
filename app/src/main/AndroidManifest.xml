@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.mrmarvel.pingpong">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.PingPong">
+        <service
+            android:name="com.mrmarvel.pingpong.services.InfiniteSensorService"
+            android:enabled="true"
+            android:exported="false" />
+        <service
+            android:name="com.mrmarvel.pingpong.services.ClientUDPService"
+            android:exported="false" />
+
+        <activity
+            android:name="com.mrmarvel.pingpong.activities.InGameActivity"
+            android:exported="false" />
+
+        <service
+            android:name="com.mrmarvel.pingpong.services.SensorService"
+            android:enabled="true"
+            android:exported="false" />
+
+        <activity
+            android:name="com.mrmarvel.pingpong.activities.DebugGyroActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.mrmarvel.pingpong.activities.ChooseServerActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.PingPong.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
